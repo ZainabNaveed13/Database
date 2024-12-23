@@ -33,19 +33,6 @@ This repository is a reflection of my journey through the database course, showc
   - Creating relational databases for specific use cases.
 
 ---
-
-## 📂 Repository Structure
-
-The repository is organized as follows:
-
-```plaintext
-├── Labs/
-│   ├── Lab1-Basic-SQL/
-│   ├── Lab2-Advanced-Joins/
-│   ├── Lab3-Normalization/
-│   ├── ...
-├── Projects/
-│   ├── Project1-Sales-Database/
-│   ├── Project2-Inventory-Management/
-│   ├── ...
-├── README.md
+## How to use 
+git clone https://github.com/your-username/Database.git
+cd Database
