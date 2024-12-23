@@ -1,0 +1,68 @@
+1.
+SELECT ename, hireate, sal 
+FROM EMP e
+WHERE e.ename <> 'Miller'
+AND e.ename <> 'Allen'
+AND (e.deptno == 20
+OR e.deptno == 30)
+AND e.sal >= 800
+AND e.sal <= 9000
+AND hiredate NOT LIKE '%1990';
+
+2.
+SELECT m.employee_name 
+FROM Manages m, EMP mgr, EMP e
+WHERE m.manager_name = mgr.ename
+AND m.salary >= 800 
+AND m.salary <= 2000
+AND (mgr.dept_no = 30
+OR mgr.dept_no = 40)
+AND e.ename = m.employee_name
+AND (YEAR(e.hiredate = 80) 
+OR (YEAR(e.hiredate = 81))
+AND LENGTH(e.ename) >= 5;
+
+3.
+SELECT ename AS Employee Name, ((salary * 20)/100 + salary) AS Incremented Salary
+FROM EMP e
+WHERE e.salary >= 1200 	#between
+AND e.salary <= 2000
+ORDER BY e.salary DESC;
+
+4.
+SELECT UPPER(SUBSTR(ename, 1, 3)) AS "First 3 letters", 
+       UPPER(SUBSTR(ename, -3)) AS "Last 3 letters", 
+       job AS "Employee Job",
+       CASE WHEN deptno = 10 OR deptno = 30 THEN sal * 1.15 
+       ELSE sal END AS "Increased Salary"
+FROM EMP;
+
+5.
+SELECT CONCAT(ename, ' ', REPEAT('*', ROUND(sal / 1000))) AS "Employee and Their Salary"
+FROM EMP;
+
+6.
+SELECT m.employee_name, e.emp_no, m.manager_name, mgr.emp_no
+FROM Manages m, EMP e, EMP mgr
+WHERE e.ename = m.employee_name 
+AND mgr.ename = m.manager_name
+AND mgr.ename <> 'BLAKE'
+AND mgr.ename <> 'FORD';
+
+7.
+SELECT ename, salary, hiredate
+FROM EMP
+WHERE hiredate > (SELECT hiredate FROM EMP WHERE ename = 'James')
+AND sal > (SELECT sal FROM EMP WHERE emp_no = 7876);
+
+8.
+SELECT m.employee_name
+FROM Manages m, EMP e
+WHERE e.ename = m.manager_name
+AND e.emp_id = 7782
+OR (e.ename LIKE ('%L%L%')
+AND e.dept_no = 30);
+
+
+
+
