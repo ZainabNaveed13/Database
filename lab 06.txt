@@ -1,0 +1,233 @@
+1.
+WITH MonthlySalesByState AS (
+    SELECT 
+        t.Year,
+        t.MonthName,
+        t.MonthNumber,
+        cs.StateName AS CustomerState,
+        SUM(CAST(s.SalesAmount AS FLOAT)) AS MonthlySales
+    FROM 
+        Sales s
+    JOIN 
+        Time t ON s.OrderDateKey = t.TimeKey
+    JOIN 
+        Customer c ON s.CustomerKey = c.CustomerKey
+    JOIN 
+        City ci ON c.CityKey = ci.CityKey
+    JOIN 
+        CountryState cs ON ci.StateKey = cs.StateKey
+    GROUP BY 
+        t.Year, t.MonthName, t.MonthNumber, cs.StateName
+)
+
+SELECT 
+    Year,
+    MonthName,
+    CustomerState,
+    MonthlySales,
+    LAG(MonthlySales, 12) OVER (PARTITION BY CustomerState ORDER BY Year, MonthNumber) AS PreviousYearSales
+FROM 
+    MonthlySalesByState
+ORDER BY 
+    CustomerState, Year, MonthName;
+
+
+2.
+WITH MonthlySalesPerProduct AS (
+    SELECT 
+        t.Year,
+        t.MonthName,
+        t.MonthNumber,
+        p.ProductName,
+        p.ProductKey,
+        SUM(CAST(s.SalesAmount AS FLOAT)) AS MonthlySales
+    FROM 
+        Sales s
+    JOIN 
+        Time t ON s.OrderDateKey = t.TimeKey
+    JOIN 
+        Product p ON s.ProductKey = p.ProductKey
+    GROUP BY 
+        t.Year, t.MonthName, t.MonthNumber, p.ProductName, p.ProductKey
+)
+
+SELECT 
+    Year,
+    MonthName,
+    ProductName,
+    MonthlySales,
+    LAG(MonthlySales, 1) OVER (PARTITION BY ProductKey ORDER BY Year, MonthNumber) AS PreviousMonthSales,
+    (MonthlySales - LAG(MonthlySales, 1) OVER (PARTITION BY ProductKey ORDER BY Year, MonthNumber)) /
+    NULLIF(LAG(MonthlySales, 1) OVER (PARTITION BY ProductKey ORDER BY Year, MonthNumber), 0) * 100 AS MonthlyGrowthPercentage
+FROM 
+    MonthlySalesPerProduct
+ORDER BY 
+    ProductName, Year, MonthName;
+
+
+3.
+SELECT TOP 3
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    SUM(CAST(s.SalesAmount AS FLOAT)) AS TotalSales
+FROM 
+    Sales s
+JOIN 
+    Employee e ON s.EmployeeKey = e.EmployeeKey
+GROUP BY 
+    e.FirstName, e.LastName
+ORDER BY 
+    TotalSales DESC;
+
+
+4.
+SELECT 
+    ProductName,
+    Year,
+    EmployeeName,
+    TotalSales
+FROM (
+    SELECT 
+        p.ProductName,
+        p.ProductKey,
+        t.Year,
+        e.FirstName + ' ' + e.LastName AS EmployeeName,
+        SUM(CAST(s.SalesAmount AS FLOAT)) AS TotalSales,
+        RANK() OVER (PARTITION BY p.ProductKey, t.Year ORDER BY SUM(CAST(s.SalesAmount AS FLOAT)) DESC) AS SalesRank
+    FROM 
+        Sales s
+    JOIN 
+        Product p ON s.ProductKey = p.ProductKey
+    JOIN 
+        Employee e ON s.EmployeeKey = e.EmployeeKey
+    JOIN 
+        Time t ON s.OrderDateKey = t.TimeKey
+    GROUP BY 
+        p.ProductName, p.ProductKey, t.Year, e.FirstName, e.LastName
+) AS RankedSales
+WHERE 
+    SalesRank = 1
+ORDER BY 
+    ProductName, Year;
+
+
+5.
+WITH CountrySales AS (
+    SELECT 
+        co.CountryName,
+        SUM(CAST(s.SalesAmount AS FLOAT)) AS TotalSales,
+        SUM(SUM(CAST(s.SalesAmount AS FLOAT))) OVER () * 0.5 AS Top50PercentThreshold
+    FROM 
+        Sales s
+    JOIN 
+        Customer c ON s.CustomerKey = c.CustomerKey
+    JOIN 
+        City ci ON c.CityKey = ci.CityKey
+    JOIN 
+        Country co ON ci.CountryKey = co.CountryKey
+    GROUP BY 
+        co.CountryName
+)
+SELECT 
+    CountryName,
+    TotalSales
+FROM 
+    CountrySales
+WHERE 
+    TotalSales >= Top50PercentThreshold
+ORDER BY 
+    TotalSales DESC;
+
+
+6.
+SELECT 
+    e.FirstName + ' ' + e.LastName AS EmployeeName,
+    t.Year,
+    t.MonthName,
+    SUM(CAST(s.SalesAmount AS FLOAT)) AS TotalSales,
+    AVG(SUM(CAST(s.SalesAmount AS FLOAT))) OVER (PARTITION BY e.EmployeeKey, t.Year ORDER BY t.MonthNumber) AS AverageMonthlySales
+FROM 
+    Sales s
+JOIN 
+    Employee e ON s.EmployeeKey = e.EmployeeKey
+JOIN 
+    Time t ON s.OrderDateKey = t.TimeKey
+GROUP BY 
+    e.EmployeeKey, e.FirstName, e.LastName, t.Year, t.MonthName, t.MonthNumber;
+
+
+7.
+SELECT 
+    p.ProductName,
+    t.Year,
+    t.MonthName,
+    SUM(CAST(s.SalesAmount AS FLOAT)) AS TotalSalesAmount,
+    SUM(CAST(s.Discount AS FLOAT)) AS TotalDiscountAmount
+FROM 
+    Sales s
+JOIN 
+    Product p ON s.ProductKey = p.ProductKey
+JOIN 
+    Time t ON s.OrderDateKey = t.TimeKey
+GROUP BY 
+    p.ProductName, t.Year, t.MonthName;
+
+
+8.
+SELECT 
+    c.CategoryName,
+    t.Year,
+    t.MonthName,
+    SUM(CAST(s.SalesAmount AS FLOAT)) AS MonthlySales,
+    SUM(SUM(CAST(s.SalesAmount AS FLOAT))) OVER (PARTITION BY c.CategoryKey, t.Year ORDER BY t.MonthNumber ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS YTDSales
+FROM 
+    Sales s
+JOIN 
+    Product p ON s.ProductKey = p.ProductKey
+JOIN 
+    Category c ON p.CategoryKey = c.CategoryKey
+JOIN 
+    Time t ON s.OrderDateKey = t.TimeKey
+GROUP BY 
+    c.CategoryName, t.Year, t.MonthName, t.MonthNumber, c.CategoryKey
+ORDER BY 
+    t.Year, t.MonthNumber;
+
+
+9.
+SELECT 
+    c.CategoryName,
+    t.Year,
+    t.MonthName,
+    AVG(CAST(s.SalesAmount AS FLOAT)) OVER (PARTITION BY c.CategoryKey ORDER BY t.Year, t.MonthNumber ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS MovingAvg3MonthsSales
+FROM 
+    Sales s
+JOIN 
+    Product p ON s.ProductKey = p.ProductKey
+JOIN 
+    Category c ON p.CategoryKey = c.CategoryKey
+JOIN 
+    Time t ON s.OrderDateKey = t.TimeKey
+
+
+10.
+SELECT 
+    e1.FirstName + ' ' + e1.LastName AS EmployeeName,
+    SUM(CAST(s.SalesAmount AS FLOAT)) AS PersonalSales,
+    (
+        SELECT SUM(CAST(s2.SalesAmount AS FLOAT))
+        FROM Sales s2
+        JOIN Employee e2 ON s2.EmployeeKey = e2.EmployeeKey
+        JOIN Time t2 ON s2.OrderDateKey = t2.TimeKey
+        WHERE (e2.EmployeeKey = e1.EmployeeKey OR e2.SupervisorKey = e1.EmployeeKey)
+        AND t2.Year = '1997'
+    ) AS TotalSalesIncludingSubordinates
+FROM 
+    Sales s
+JOIN 
+    Employee e1 ON s.EmployeeKey = e1.EmployeeKey
+JOIN 
+    Time t ON s.OrderDateKey = t.TimeKey
+WHERE 
+    t.Year = '1997'
+GROUP BY 
+    e1.EmployeeKey, e1.FirstName, e1.LastName;
