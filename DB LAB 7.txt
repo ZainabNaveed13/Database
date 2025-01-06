@@ -1,0 +1,48 @@
+1. DELETE FROM Bonus WHERE worker_ID = 30;
+
+2. INSERT INTO Salgrade (GRADE, LOSAL, HISAL) VALUES (99, 1000, 2000);
+
+3. UPDATE EMPLOYEE SET JOB = 'CLERK', MGR = 14, HIREDATE = '2011-10-07', SAL = 13000, COMM = 550, DEPTNO = 5 WHERE NO = 22;
+
+4.
+employee_number	 last_name	first_name	salary	dept_id
+1003		  Everest	   Brad		71000	 501
+1004		  Horvath	   Jack		42000	 502
+NULL		  Anderson	   Jane		57500	 503
+1005	   	  Johnson	   Sally	58000	 505
+
+5. UPDATE employees SET employee_number = 1006, last_name = 'Updated', first_name = 'Name', salary = 60000, dept_id = 503 WHERE dept_id = 503;
+
+6. UPDATE employees SET last_name = 'Jones' WHERE employee_number = 1004;
+
+7. UPDATE employees SET salary = 100000 WHERE employee_number = 1002;
+
+8. UPDATE employees SET first_name = 'YourName' WHERE last_name = 'Anderson';
+
+9.
+employee_number		last_name	first_name	salary	dept_id
+	1003		Everest		   Brad		71000	  501
+	1004		Jones		   Jack		42000	  502
+	1006		Updated		   Name		60000	  503
+	1005		Johnson		   Sally	58000	  505
+
+10. DELETE FROM employees WHERE dept_id = 500;
+
+11. DELETE FROM employees WHERE employee_number = 1004;
+
+12. 
+employee_number	last_name	first_name	salary	dept_id
+	1003	Everest		Brad		71000	 501
+	1006	Updated		Name		60000	 503
+	1005	Johnson		Sally		58000	 505
+
+13. INSERT INTO DEPARTMENT (DEPTNO, DNAME, LOC) VALUES (999, 'NewDept', 'NewLocation');
+
+14. DELETE FROM Title WHERE worker_ID = 11;
+
+15. UPDATE Worker SET First_Name = 'UpdatedName', Last_Name = 'UpdatedLastName', Sal = 99999, Joining_Date = '2024-01-01', department = 'UpdatedDept' WHERE worker_ID = 120;
+
+
+
+
+
